@@ -229,10 +229,14 @@ class ZeroForcingArguments(Enum):
 
 
 _extension_modules = [
-    Extension("zeroforcing.fastqueue", sources=["zeroforcing/fastqueue.pyx"]),
-    Extension("zeroforcing.metagraph", sources=["zeroforcing/metagraph.pyx"]),
+    #Extension("zeroforcing.fastqueue", sources=["zeroforcing/fastqueue.pyx"], language="c++"),
+
+    #Extension("zeroforcing.fastqueue", sources=["zeroforcing/fastqueue.pyx", "zeroforcing/test.cpp"], language="c++"),
+    Extension("zeroforcing.fastqueue", sources=["zeroforcing/fastqueue.pyx", "zeroforcing/test.cpp"], language="c++"),
+    
+    #Extension("zeroforcing.metagraph", sources=["zeroforcing/metagraph.pyx"], language="c++"),
     # TODO: Add flag whether or not to compile this
-    Extension("test.verifiability.wavefront", sources=["test/verifiability/wavefront.pyx"]),
+    #Extension("test.verifiability.wavefront", sources=["test/verifiability/wavefront.pyx"]),
 ]
 
 
@@ -256,7 +260,8 @@ def _get_setup_parameters(extensions, zf_args, setup_args):
         force_release_ext_names = {"test.verifiability.wavefront"}
         debug_exts = [ext for ext in extensions if zf_args.debug and ext.name not in force_release_ext_names]
         release_exts = [ext for ext in extensions if ext.name not in {e.name for e in debug_exts}]
-        comp_directives = {"language_level": zf_args.compiler_lang, "binding": False}
+        #comp_directives = {"language_level": zf_args.compiler_lang, "binding": False}
+        comp_directives = {"language_level": zf_args.compiler_lang, "binding": False, "cpp_locals": True}
 
         cythonized = []
         if debug_exts:

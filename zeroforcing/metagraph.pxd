@@ -1,8 +1,13 @@
 from sage.data_structures.bitset cimport Bitset, FrozenBitset
 from sage.data_structures.bitset_base cimport bitset_t
+from libcpp.unordered_map cimport unordered_map
+from libcpp.unordered_set cimport unordered_set
+from libcpp.vector cimport vector
 
-from zeroforcing.fastqueue cimport FastQueueForBFS
+from zeroforcing.fastqueue cimport FastQueueForBFS, Node
 
+
+ctypedef unordered_map[bitset_t, Node] DijkstraDict
 
 cdef class ExtendClosureBitsets:
     cdef:
@@ -19,21 +24,22 @@ cdef class ExtendClosureBitsets:
 
 cdef class ZFSearchMetagraph:
     @staticmethod
-    cdef list shortest(FrozenBitset, FrozenBitset, list, dict)
+    cdef void shortest(FrozenBitset, FrozenBitset, vector[Node], DijkstraDict)
 
     cdef:
         size_t num_vertices, vertex_to_fill
-        dict neighbors_dict, closed_neighborhood_list, orig_to_relabeled_verts, relabeled_to_orig_verts
+        #dict orig_to_relabeled_verts, relabeled_to_orig_verts
         set vertices_set
-        bitset_t meta_vertex
         bitset_t *neighborhood_array
+        bitset_t *neighbors_dict
+        bitset_t *closed_neighborhood_list
         ExtendClosureBitsets ec_bitsets
 
         void initialize_neighbors(self, object)
         void initialize_neighborhood_array(self, object)
-        FrozenBitset extend_closure(self, FrozenBitset, FrozenBitset)
-        void neighbors_with_edges_add_to_queue(self, FastQueueForBFS, FrozenBitset, size_t)
-        set build_zf_set(self, list)
+        FrozenBitset extend_closure(self, bitset_t, bitset_t)
+        void neighbors_with_edges_add_to_queue(self, FastQueueForBFS, Node)
+        unordered_set[size_t] build_zf_set(self, vector[Node])
 
         object __to_orig_metavertex_iter(self, object)
         object __to_relabeled_metavertex_iter(self, object)

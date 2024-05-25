@@ -1,37 +1,49 @@
-cdef extern from "stdint.h":
-    cdef size_t SIZE_MAX
+from libcpp.utility cimport move
+#from zeroforcing.fastqueue cimport WrappedCppBitsetT
 
-# Disabling bounds checking in this class sounds like it would be perfect here(?)
+cimport cython
+import heapq
+
+print("yo")
+"""
+cdef class Testerson:
+    def __cinit__(self):
+        WrappedCppBitsetT()
 cdef class FastQueueForBFS:
-    def __init__(self, max_priority):
-        self.max_possible_priority = max_priority
-        self.smallest_nonempty_priority = SIZE_MAX
-        
-        self.array_list = [list() for _ in range(max_priority+1)]
+    #@cython.boundscheck(False)
+    #@cython.wraparound(False)
+    cdef void push(self, NodePrio new_item):
+        try:
+            self.queue[new_item.first].push_back(new_item.second)
+        except IndexError:
+            self.queue[new_item.first] = QueueAtPrio()
+            self.queue[new_item.first].push_back(new_item.second)
 
-    cdef void push(self, size_t priority_for_new_item, object new_item):
-        # Check for negative here?
-        # raise ValueError if priority_for_new_item > self.max_possible_priority?
-            # Not checking makes it faster though :)
+        if self.queue[new_item.first].size() == 1:
+            heapq.heappush(self.priority_heap, new_item.first)
 
-        self.array_list[priority_for_new_item].append(new_item)
-        
-        self.smallest_nonempty_priority = min(priority_for_new_item, self.smallest_nonempty_priority)
+    #cdef Node pop(self):
+        #cdef:
+            #size_t priority_to_return = self.priority_heap[0]
+            #Node item_to_return = self.queue[priority_to_return].front()
 
-    cdef object pop(self):
-        cdef size_t _
-        cdef object popped
+        #self.queue[priority_to_return].pop_front()
+        #if self.queue[item_to_return.first].size() == 0:
+            #heapq.heappop(self.priority_heap)
 
-        _, popped = self.pop_and_get_priority()
-        return popped
+        #return item_to_return
 
-    cdef tuple pop_and_get_priority(self):
-        # Store vals to return
-        cdef size_t priority_to_return = self.smallest_nonempty_priority
-        cdef object item_to_return = self.array_list[priority_to_return].pop()
+        #return self.pop_and_get_priority().second
 
-        # Find new smallest priority
-        while len(self.array_list[self.smallest_nonempty_priority]) == 0 \
-        and self.smallest_nonempty_priority < self.max_possible_priority:
-            self.smallest_nonempty_priority += 1
-        return priority_to_return, item_to_return
+    #@cython.boundscheck(False)
+    #@cython.wraparound(False)
+    cdef NodePrio pop_and_get_priority(self):
+        cdef size_t priority_to_return = self.priority_heap[0]
+        cdef Node item_to_return = move(self.queue[priority_to_return].front())
+
+        self.queue[priority_to_return].pop_front()
+        if self.queue[priority_to_return].size() == 0:
+            heapq.heappop(self.priority_heap)
+
+        return NodePrio(priority_to_return, item_to_return)
+"""

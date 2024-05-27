@@ -1,3 +1,4 @@
+.git
 **/build
 **/__pycache__
 zeroforcing/**/*.c

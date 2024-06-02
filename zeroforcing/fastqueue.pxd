@@ -5,7 +5,7 @@ from libcpp.unordered_map cimport unordered_map
 from sage.data_structures.bitset_base cimport bitset_t, bitset_s
 
 #ctypedef public bitset_t CythonBitsetT
-#ctypedef public bitset_s CythonBitsetS
+ctypedef public bitset_s CythonBitsetS
 
 #cdef public class Test(object)[type ClassType, object ClassObj]:
     #cdef bitset_t jef

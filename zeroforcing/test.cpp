@@ -1,27 +1,25 @@
 #include <iostream>
+
+#include "gmp.h"
+
 #include "test.h"
 
-//static_assert(false, "Test!");
-
-//typedef CythonBitsetS CppRawBitsetT[1];
-//typedef std::array<CythonBitsetS, 1> CppArrBitsetT;
-
-struct Test {
-    int test;
+struct CythonBitsetS {
+    mp_bitcnt_t size;
+    mp_size_t limbs;
+    mp_limb_t *bits;
 };
 
-//WrappedCppBitsetT::WrappedCppBitsetT() : converted_bts {  } {
-WrappedCppBitsetT::WrappedCppBitsetT() : rawbts() {
-//WrappedCppBitsetT::WrappedCppBitsetT() : bts {} {
-    std::cout << "Constructing WrappedCppBitsetT\n";
-    //this->raw_bitset = static_cast<CppRawBitsetT>(new CythonBitsetT);
-    //this->rawbts = CppArrBitsetT();
+class WrappedCppBitsetT {
+    private:
+        CythonBitsetS *rawbts;
+    public:
+        WrappedCppBitsetT();
+        WrappedCppBitsetT(const WrappedCppBitsetT&);
+};
 
-    /*
-    CppBitsetT::operator=(const CppBitsetT &other) {
-        return *other;
-    }
-    */
+WrappedCppBitsetT::WrappedCppBitsetT() : rawbts() {
+    std::cout << "Constructing WrappedCppBitsetT\n";
 }
 
 WrappedCppBitsetT::WrappedCppBitsetT(const WrappedCppBitsetT& other) : rawbts() {
@@ -34,10 +32,3 @@ WrappedCppBitsetT::WrappedCppBitsetT(const WrappedCppBitsetT& other) : rawbts() 
     other.rawbts->limbs = 0;
     other.rawbts->bits = nullptr;
 }
-/*
-WrappedCppBitsetT::~WrappedCppBitsetT() {
-    std::cout << "Destructing WrappedCppBitsetT\n";
-    delete rawbts;
-}
-*/
-auto a = WrappedCppBitsetT();

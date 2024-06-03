@@ -232,7 +232,7 @@ _extension_modules = [
     #Extension("zeroforcing.fastqueue", sources=["zeroforcing/fastqueue.pyx"], language="c++"),
 
     #Extension("zeroforcing.fastqueue", sources=["zeroforcing/fastqueue.pyx", "zeroforcing/test.cpp"], language="c++"),
-    Extension("zeroforcing.fastqueue", sources=["zeroforcing/fastqueue.pyx", "zeroforcing/test.cpp"], language="c++"),
+    Extension("zeroforcing.fastqueue", sources=["zeroforcing/fastqueue.pyx"], language="c++"),
     
     #Extension("zeroforcing.metagraph", sources=["zeroforcing/metagraph.pyx"], language="c++"),
     # TODO: Add flag whether or not to compile this

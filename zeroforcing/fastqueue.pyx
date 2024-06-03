@@ -4,11 +4,12 @@ from libcpp.utility cimport move
 cimport cython
 import heapq
 
-print("yo")
 """
 cdef class Testerson:
     def __cinit__(self):
         WrappedCppBitsetT()
+"""
+
 cdef class FastQueueForBFS:
     #@cython.boundscheck(False)
     #@cython.wraparound(False)
@@ -46,4 +47,3 @@ cdef class FastQueueForBFS:
             heapq.heappop(self.priority_heap)
 
         return NodePrio(priority_to_return, item_to_return)
-"""

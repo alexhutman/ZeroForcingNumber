@@ -2,7 +2,7 @@ from os.path import join as opj
 
 from setuptools import setup, Extension, find_packages
 
-from build_helper import zf_cythonize, build_wavefront, no_egg
+from build_helper import zf_cythonize, build_wavefront, no_egg, CustomBuild
 
 try:
     from sage_setup.command.sage_build_cython import sage_build_cython
@@ -48,6 +48,7 @@ def get_setup_parameters(extensions):
     )
 
     cmdclass = dict(
+        build=CustomBuild,
         bdist_egg=no_egg,
         build_ext=zf_cythonize
     )

@@ -1,4 +1,8 @@
 from setuptools.command.bdist_egg import bdist_egg as _bdist_egg
+from setuptools.command.build import build
+from setuptools import Extension
+
+from os.path import join as opj
 
 try:
     from sage_setup.command.sage_build_ext import sage_build_ext as _build_ext
@@ -41,3 +45,5 @@ class build_wavefront(zf_cythonize):
         self.distribution.packages = [ext_name]
         self.distribution.ext_modules = [Extension(ext_name, sources=[opj("test", "verifiability", "wavefront.pyx")])]
 
+class CustomBuild(build):
+    sub_commands = [('wavefront', None)] + build.sub_commands

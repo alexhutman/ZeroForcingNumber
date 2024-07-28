@@ -2,7 +2,7 @@ from os.path import join as opj
 
 from setuptools import setup, Extension, find_packages
 
-from build_helper import zf_cythonize, build_wavefront, no_egg, CustomBuild
+from build_helper import zf_cythonize, build_zf_code, build_wavefront, no_egg, InitZFBuild
 
 try:
     from sage_setup.command.sage_build_cython import sage_build_cython
@@ -29,7 +29,7 @@ with open("VERSION") as f:
 with open("README.md") as f:
     README = f.read().strip()
 
-def get_setup_parameters(extensions):
+def get_setup_parameters():
     setup_params = dict(
         name="zeroforcing",
         author="Alexander Hutman, Louis Deaett",
@@ -41,21 +41,22 @@ def get_setup_parameters(extensions):
         classifiers=classifiers,
         packages=find_packages(where='src'),
         package_data={"zeroforcing": ["*.pxd"]},
-        package_dir={"": "src"},
-        ext_modules=extensions,
+        package_dir={"": "src", "zeroforcing.test": "test"},
         install_requires=["setuptools>=60.0", "sagemath-standard", "Cython"],
         extras_require={ "test": ['pytest'] },
     )
 
     cmdclass = dict(
-        build=CustomBuild,
         bdist_egg=no_egg,
-        build_ext=zf_cythonize
+        build=InitZFBuild(build_wavefront=False),
+        build_ext=zf_cythonize,
+        zeroforcing=build_zf_code,
+        wavefront=build_wavefront,
     )
+
     if SAGE_INSTALLED:
         cmdclass.update(dict(
             build_cython=sage_build_cython,
-            wavefront=build_wavefront
         ))
 
     setup_params.update(dict(
@@ -65,12 +66,7 @@ def get_setup_parameters(extensions):
 
 
 def main():
-    extensions = [
-        Extension("zeroforcing.fastqueue", sources=[opj("src", "zeroforcing", "fastqueue.pyx")]),
-        Extension("zeroforcing.metagraph", sources=[opj("src", "zeroforcing", "metagraph.pyx")]),
-    ]
-
-    setup(**get_setup_parameters(extensions))
+    setup(**get_setup_parameters())
 
 if __name__ == "__main__":
     main()

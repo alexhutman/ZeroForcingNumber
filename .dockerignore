@@ -1,8 +1,8 @@
 **/__pycache__
-src/zeroforcing/build
-src/zeroforcing/dist
 src/zeroforcing.egg_info
 zeroforcing/**/*.c
 zeroforcing/**/*.so
 test/**/*.c
 test/**/*.so
+build/
+dist/

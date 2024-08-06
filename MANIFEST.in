@@ -1,7 +1,7 @@
 global-include README.md VERSION LICENSE
-global-include setup.py
+global-include setup.py build_helper.py
 graft src
-prune test
+graft test
 prune build
 prune dist
 recursive-exclude * *.ipynb

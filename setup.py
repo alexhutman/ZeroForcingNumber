@@ -1,7 +1,18 @@
+import logging
+import os
+
 from os.path import join as opj
 
 from setuptools import setup, Extension, find_packages
-from setuptools.command.bdist_egg import bdist_egg as _bdist_egg
+
+from build_helper import zf_cythonize, build_zf_code, build_wavefront, no_egg, InitZFBuild
+
+try:
+    from sage_setup.command.sage_build_cython import sage_build_cython
+    SAGE_INSTALLED = True
+except ImportError:
+    SAGE_INSTALLED = False
+
 
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -16,49 +27,16 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
-try:
-    from sage_setup.command.sage_build_cython import sage_build_cython
-    from sage_setup.command.sage_build_ext import sage_build_ext as _build_ext
+def set_up_logger(level=logging.DEBUG):
+    logger = logging.getLogger(__name__)
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter(fmt='[%(levelname)s]: %(message)s')
+    handler.setFormatter(formatter)
+    handler.setLevel(level)
+    logger.addHandler(handler)
+    return logger
 
-    SAGE_INSTALLED = True
-except ImportError:
-    from setuptools.command.build_ext import build_ext as _build_ext
-    SAGE_INSTALLED = False
-
-class no_egg(_bdist_egg):
-    def run(self):
-        from distutils.errors import DistutilsOptionError
-        raise DistutilsOptionError("Honestly just copying https://github.com/sagemath/cysignals/blob/c901dc9217de735c67ca5daf3dff6276813a05b5/setup.py#L186-L193")
-
-class zf_cythonize(_build_ext):
-    base_directives = dict(
-         binding=False,
-         language_level=3,
-    )
-    def finalize_options(self):
-        dist = self.distribution
-        ext_modules = dist.ext_modules
-        if ext_modules:
-            dist.ext_modules[:] = self.cythonize(ext_modules)
-        super().finalize_options()
-
-    def cythonize(self, extensions):
-        # Run Cython with -Werror on continuous integration services
-        # with Python 3.6 or later
-        from Cython.Compiler import Options
-        Options.warning_errors = False
-
-        compiler_directives = dict(**self.base_directives)
-        from Cython.Build.Dependencies import cythonize
-        return cythonize(extensions,
-                         compiler_directives=compiler_directives)
-
-class build_wavefront(zf_cythonize):
-    def initialize_options(self):
-        super().initialize_options()
-        ext_name = "zeroforcing.test.verifiability.wavefront"
-        self.distribution.packages = [ext_name]
-        self.distribution.ext_modules = [Extension(ext_name, sources=[opj("test", "verifiability", "wavefront.pyx")])]
+logger = set_up_logger(logging.DEBUG)
 
 with open("VERSION") as f:
     VERSION = f.read().strip()
@@ -66,7 +44,12 @@ with open("VERSION") as f:
 with open("README.md") as f:
     README = f.read().strip()
 
-def get_setup_parameters(extensions):
+def should_compile_wavefront():
+    # This is the best I can do rn...
+    # https://github.com/pypa/build/issues/328
+    return os.environ.get("COMPILE_WAVEFRONT", None) is not None
+
+def get_setup_parameters():
     setup_params = dict(
         name="zeroforcing",
         author="Alexander Hutman, Louis Deaett",
@@ -79,7 +62,6 @@ def get_setup_parameters(extensions):
         packages=find_packages(where='src'),
         package_data={"zeroforcing": ["*.pxd"]},
         package_dir={"": "src"},
-        ext_modules=extensions,
         install_requires=["setuptools>=60.0", "Cython"],
         extras_require=dict(test=['pytest'],
                             lint=['cython-lint']),
@@ -87,13 +69,19 @@ def get_setup_parameters(extensions):
 
     cmdclass = dict(
         bdist_egg=no_egg,
-        build_ext=zf_cythonize
+        build=InitZFBuild(build_wavefront=should_compile_wavefront()),
+        build_ext=zf_cythonize,
+        zeroforcing=build_zf_code,
+        wavefront=build_wavefront,
     )
+
     if SAGE_INSTALLED:
         cmdclass.update(dict(
             build_cython=sage_build_cython,
-            wavefront=build_wavefront
         ))
+    else:
+        logger.warning("Sage is not detected. You will likely not be able to link"
+                       " against the required Sage libraries and get an error.")
 
     setup_params.update(dict(
         cmdclass=cmdclass
@@ -102,12 +90,7 @@ def get_setup_parameters(extensions):
 
 
 def main():
-    extensions = [
-        Extension("zeroforcing.fastqueue", sources=[opj("src", "zeroforcing", "fastqueue.pyx")]),
-        Extension("zeroforcing.metagraph", sources=[opj("src", "zeroforcing", "metagraph.pyx")]),
-    ]
-
-    setup(**get_setup_parameters(extensions))
+    setup(**get_setup_parameters())
 
 if __name__ == "__main__":
     main()

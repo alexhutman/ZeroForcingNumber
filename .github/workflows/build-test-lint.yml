@@ -1,4 +1,4 @@
-name: Build and Test
+name: Build, Test, Lint
 env:
   SHA: ${{ github.event.pull_request.head.sha || github.sha }}
   CODE_DIR: /home/sage/zeroforcing
@@ -63,10 +63,32 @@ jobs:
             echo "CONTAINER_ID=$(docker run -dt --entrypoint=/bin/sh zeroforcing:${SHA})" >> $GITHUB_ENV
       - name: Build wavefront code
         run: |
-            docker exec --workdir "${CODE_DIR}" "${CONTAINER_ID}" sage --python3 setup.py wavefront
+            docker exec -e COMPILE_WAVEFRONT=true --workdir "${CODE_DIR}" "${CONTAINER_ID}" sage --python3 -m build --no-isolation
       - name: Install wavefront code + test dependencies
         run: |
-            docker exec --workdir "${CODE_DIR}" "${CONTAINER_ID}" sage -pip install --no-cache-dir '.[test]'
+            docker exec -e COMPILE_WAVEFRONT=true --workdir "${CODE_DIR}" "${CONTAINER_ID}" sage -pip install --no-cache-dir '.[test]'
       - name: Test ZeroForcing code
         run: |
             docker exec --workdir "${CODE_DIR}" "${CONTAINER_ID}" sage --python3 -m pytest --profile
+  lint:
+    needs: build
+    runs-on:
+      - ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: zeroforcing-${{env.SHA}}
+          path: /tmp
+      - name: Load Docker image
+        run: |
+          docker load --input /tmp/zeroforcing-${{env.SHA}}.tar
+      - name: Run Docker image
+        run: |
+            echo "CONTAINER_ID=$(docker run -d zeroforcing:${SHA})" >> $GITHUB_ENV
+      - name: Install lint requirements
+        run: |
+            docker exec --workdir "${CODE_DIR}" "${CONTAINER_ID}" sage -pip install --no-cache-dir '.[lint]'
+      - name: Start Sage shell to find lint dep. executables & Lint Cython code
+        run: |
+            docker exec --workdir "${CODE_DIR}" "${CONTAINER_ID}" sage --sh -c 'find src -type f \( -iname \*.pyx -o -iname \*.pxd \) | xargs cython-lint'
